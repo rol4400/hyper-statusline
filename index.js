@@ -140,6 +140,7 @@ exports.decorateConfig = (config) => {
     });
 };
 
+let isWsl;
 let pid;
 let cwd;
 let git = {
@@ -150,7 +151,7 @@ let git = {
 }
 
 const setCwd = (pid, action) => {
-    if (process.platform == 'win32') {
+    if (process.platform == 'win32' && !isWsl) {
         let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/mi;
         if (action && action.data) {
             let path = directoryRegex.exec(action.data);
@@ -335,6 +336,7 @@ exports.middleware = (store) => (next) => (action) => {
             break;
 
         case 'SESSION_ADD':
+            isWsl = action.isWsl;
             pid = action.pid;
 
             setCwd(pid);
@@ -352,6 +354,7 @@ exports.middleware = (store) => (next) => (action) => {
             break;
 
         case 'SESSION_SET_ACTIVE':
+            isWsl = uids[action.uid].isWsl;
             pid = uids[action.uid].pid;
 
             setCwd(pid);
