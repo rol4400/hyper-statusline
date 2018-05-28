@@ -165,7 +165,6 @@ const setCwd = (pid, action) => {
             setGit(cwd);
         });
     }
-    
 };
 
 const isGit = (dir, cb) => {
@@ -255,7 +254,7 @@ const setGit = (repo) => {
                 dirty: result.dirty,
                 ahead: result.ahead
             }
-        })
+        });
     });
 }
 
@@ -332,11 +331,14 @@ exports.middleware = (store) => (next) => (action) => {
     switch (action.type) {
         case 'SESSION_SET_XTERM_TITLE':
             pid = uids[action.uid].pid;
+
             break;
 
         case 'SESSION_ADD':
             pid = action.pid;
+
             setCwd(pid);
+
             break;
 
         case 'SESSION_ADD_DATA':
@@ -346,11 +348,14 @@ exports.middleware = (store) => (next) => (action) => {
             if (enterKey) {
                 setCwd(pid, action);
             }
+
             break;
 
         case 'SESSION_SET_ACTIVE':
             pid = uids[action.uid].pid;
+
             setCwd(pid);
+
             break;
     }
 
