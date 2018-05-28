@@ -1,5 +1,5 @@
 const { shell } = require('electron');
-const { exec } = require('child_process');
+const childProcess = require('child_process');
 const color = require('color');
 const afterAll = require('after-all-results');
 const tildify = require('tildify');
@@ -148,6 +148,14 @@ let git = {
     remote: '',
     dirty: 0,
     ahead: 0
+}
+
+const exec = function () {
+    if (isWsl) {
+        arguments[0] = `bash -ic "${arguments[0].replace(/([$"])/g, '\\$1')}"`;
+    }
+
+    childProcess.exec.apply(this, arguments);
 }
 
 const setCwd = (pid, action) => {
