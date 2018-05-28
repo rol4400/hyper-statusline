@@ -141,7 +141,7 @@ exports.decorateConfig = (config) => {
 };
 
 let isWsl;
-let pid;
+let pids = [];
 let cwd;
 let git = {
     branch: '',
@@ -335,19 +335,24 @@ exports.decorateHyper = (Hyper, { React }) => {
 };
 
 exports.middleware = (store) => (next) => (action) => {
-    const uids = store.getState().sessions.sessions;
+    const sessions = store.getState().sessions.sessions;
+    const activeUid = store.getState().sessions.activeUid;
 
     switch (action.type) {
-        case 'SESSION_SET_XTERM_TITLE':
-            pid = uids[action.uid].pid;
-
-            break;
-
         case 'SESSION_ADD':
             isWsl = action.isWsl;
-            pid = action.pid;
 
-            setCwd(pid);
+            if (action.isWsl) {
+                exec(`lsof -c bash | awk '$4=="cwd"' | tr -s ' ' | tail -n3 | head -n1 | cut -d ' ' -f2`,
+                    (err, stdout) => {
+                        pids[action.uid] = stdout.trim();
+                        setCwd(pids[action.uid]);
+                    }
+                );
+            } else {
+                pids[action.uid] = action.pid;
+                setCwd(pids[action.uid]);
+            }
 
             break;
 
@@ -356,16 +361,19 @@ exports.middleware = (store) => (next) => (action) => {
             const enterKey = data.indexOf('\n') > 0;
 
             if (enterKey) {
-                setCwd(pid, action);
+                setCwd(pids[activeUid], action);
             }
 
             break;
 
         case 'SESSION_SET_ACTIVE':
-            isWsl = uids[action.uid].isWsl;
-            pid = uids[action.uid].pid;
+            const isDifferentSessionActive = action.uid !== activeUid;
 
-            setCwd(pid);
+            if (isDifferentSessionActive) {
+                isWsl = sessions[action.uid].isWsl;
+
+                setCwd(pids[action.uid]);
+            }
 
             break;
     }
