@@ -153,18 +153,9 @@ let git = {
 const exec = function () {
     if (isWsl) {
         arguments[0] = `bash -ic "${arguments[0].replace(/([$"])/g, '\\$1')}"`;
-
-        if (arguments[1] && arguments[1].cwd) {
-            childProcess.exec(`wsl wslpath -w ${arguments[1].cwd}`, (err, stdout) => {
-                arguments[1].cwd = stdout.trim();
-                childProcess.exec.apply(this, arguments);
-            });
-        } else {
-            childProcess.exec.apply(this, arguments);
-        }
-    } else {
-        childProcess.exec.apply(this, arguments);
     }
+
+    childProcess.exec.apply(this, arguments);
 }
 
 const setCwd = (pid, action) => {
@@ -180,7 +171,10 @@ const setCwd = (pid, action) => {
     } else {
         exec(`lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`, (err, stdout) => {
             cwd = stdout.trim();
-            setGit(cwd);
+
+            childProcess.exec(`wsl wslpath -w ${cwd}`, (err, stdout) => {
+                setGit(stdout.trim())
+            });
         });
     }
 };
