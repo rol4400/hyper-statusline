@@ -152,7 +152,7 @@ let git = {
 
 const exec = function () {
     if (isWsl) {
-        arguments[0] = `bash -ic "${arguments[0].replace(/([$"])/g, '\\$1')}"`;
+        arguments[0] = `bash -c "${arguments[0].replace(/([$"])/g, '\\$1')}"`;
     }
 
     childProcess.exec.apply(this, arguments);
