@@ -163,7 +163,7 @@ const setCwd = (pid, action) => {
         let directoryRegex = /([a-zA-Z]:[^\:\[\]\?\"\<\>\|]+)/mi;
         if (action && action.data) {
             let path = directoryRegex.exec(action.data);
-            if(path){
+            if (path) {
                 cwd = path[0];
                 setGit(cwd);
             }
