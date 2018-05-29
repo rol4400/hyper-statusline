@@ -171,22 +171,19 @@ const setCwd = (pid, action) => {
     } else {
         exec(`lsof -p ${pid} | awk '$4=="cwd"' | tr -s ' ' | cut -d ' ' -f9-`, (err, stdout) => {
             cwd = stdout.trim();
-
-            childProcess.exec(`wsl wslpath -w ${cwd}`, (err, stdout) => {
-                setGit(stdout.trim())
-            });
+            setGit(cwd);
         });
     }
 };
 
 const isGit = (dir, cb) => {
-    exec(`git rev-parse --is-inside-work-tree`, { cwd: dir }, (err) => {
+    exec(`git -C ${dir} rev-parse --is-inside-work-tree`, (err) => {
         cb(!err);
     });
 }
 
 const gitBranch = (repo, cb) => {
-    exec(`git symbolic-ref --short HEAD || git rev-parse --short HEAD`, { cwd: repo }, (err, stdout) => {
+    exec(`git -C ${repo} symbolic-ref --short HEAD || git rev-parse --short HEAD`, (err, stdout) => {
         if (err) {
             return cb(err);
         }
@@ -196,13 +193,13 @@ const gitBranch = (repo, cb) => {
 }
 
 const gitRemote = (repo, cb) => {
-    exec(`git ls-remote --get-url`, { cwd: repo }, (err, stdout) => {
+    exec(`git -C ${repo} ls-remote --get-url`, (err, stdout) => {
         cb(null, stdout.trim().replace(/^git@(.*?):/, 'https://$1/').replace(/[A-z0-9\-]+@/, '').replace(/\.git$/, ''));
     });
 }
 
 const gitDirty = (repo, cb) => {
-    exec(`git status --porcelain --ignore-submodules -uno`, { cwd: repo }, (err, stdout) => {
+    exec(`git -C ${repo} status --porcelain --ignore-submodules -uno`, (err, stdout) => {
         if (err) {
             return cb(err);
         }
@@ -212,7 +209,7 @@ const gitDirty = (repo, cb) => {
 }
 
 const gitAhead = (repo, cb) => {
-    exec(`git rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`, { cwd: repo }, (err, stdout) => {
+    exec(`git -C ${repo} rev-list --left-only --count HEAD...@'{u}' 2>/dev/null`, (err, stdout) => {
         cb(null, parseInt(stdout, 10));
     });
 }
